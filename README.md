@@ -13,7 +13,7 @@
 
 [Features](#-features) • [Installation](#-installation--usage) • [How It Works](#-how-this-tool-works) • [Documentation](#-input-formats) • [Contributing](#-contributing)
 
-<img src="https://raw.githubusercontent.com/yourusername/mutate-for-digest/main/assets/demo.gif" alt="Demo" width="800"/>
+<img src="https://raw.githubusercontent.com/ShubhamBioIT/mutate-for-digest/main/assets/demo.gif" alt="Demo" width="800"/>
 
 </div>
 
@@ -333,19 +333,19 @@ We love contributions! 💙 Here's how you can help:
 <td>
 
 ### 🐛 **Report Bugs**
-Found a bug? [Open an issue](https://github.com/yourusername/mutate-for-digest/issues)
+Found a bug? [Open an issue](https://github.com/ShubhamBioIT/mutate-for-digest/issues)
 
 </td>
 <td>
 
 ### 💡 **Suggest Features**
-Have an idea? [Start a discussion](https://github.com/yourusername/mutate-for-digest/discussions)
+Have an idea? [Start a discussion](https://github.com/ShubhamBioIT/mutate-for-digest/discussions)
 
 </td>
 <td>
 
 ### 🔧 **Submit PR**
-Want to code? [Create a pull request](https://github.com/yourusername/mutate-for-digest/pulls)
+Want to code? [Create a pull request](https://github.com/ShubhamBioIT/mutate-for-digest/pulls)
 
 </td>
 </tr>
@@ -464,7 +464,7 @@ Perfect for researchers in:
 
 <div align="center">
 
-[![Star History Chart](https://api.star-history.com/svg?repos=yourusername/mutate-for-digest&type=Date)](https://star-history.com/#yourusername/mutate-for-digest&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=ShubhamBioIT/mutate-for-digest&type=Date)](https://star-history.com/#yourusername/mutate-for-digest&Date)
 
 **If you find this tool helpful, please consider giving it a ⭐!**
 
