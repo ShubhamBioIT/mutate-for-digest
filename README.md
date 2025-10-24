@@ -439,7 +439,6 @@ Perfect for researchers in:
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen)
 ![Coverage](https://img.shields.io/badge/coverage-85%25-green)
 ![Version](https://img.shields.io/badge/version-1.0.0-blue)
-![Downloads](https://img.shields.io/badge/downloads-1k%2Fmonth-brightgreen)
 
 </div>
 
