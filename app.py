@@ -9,6 +9,13 @@ import re as _re
 import requests
 
 
+@st.cache_resource
+def load_heavy_resources():
+    # load models, enzymes DB, fasta files
+    return resource
+
+resource = load_heavy_resources()
+
 # Set page config
 st.set_page_config(
     page_title="Mutate for Digest - Bioinformatics Tool",
@@ -1171,4 +1178,5 @@ Restriction Sites Analyzed: {', '.join([site.split('(')[1].split(')')[0] for sit
                     )
 
 if __name__ == "__main__":
+
     main()
