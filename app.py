@@ -9,13 +9,6 @@ import re as _re
 import requests
 
 
-@st.cache_resource
-def load_heavy_resources():
-    # load models, enzymes DB, fasta files
-    return resource
-
-resource = load_heavy_resources()
-
 # Set page config
 st.set_page_config(
     page_title="Mutate for Digest - Bioinformatics Tool",
@@ -36,107 +29,793 @@ if st.sidebar.button("🔄 Reset Page"):
     reset_app()
     st.rerun()
 
-# Custom CSS for beautiful styling
+# ─────────────────────────────────────────────────────────────────────────────
+# ENHANCED CSS — Bioinformatics Lab Aesthetic
+# Dark science + vivid neon accents inspired by DNA gel imaging & lab equipment
+# ─────────────────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
+    /* ── Google Fonts ── */
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Orbitron:wght@700;900&display=swap');
+
+    /* ── Root Palette ── */
+    :root {
+        --dna-teal:    #00e5c3;
+        --dna-violet:  #a259ff;
+        --dna-lime:    #b4f442;
+        --dna-coral:   #ff6b6b;
+        --dna-amber:   #ffba08;
+        --dna-blue:    #4cc9f0;
+        --dna-pink:    #f72585;
+        --dark-base:   #0a0e1a;
+        --dark-card:   #111827;
+        --dark-panel:  #1a2235;
+        --dark-border: rgba(0, 229, 195, 0.18);
+        --text-main:   #e8f4f8;
+        --text-muted:  #8fa3b1;
+    }
+
+    /* ── Global reset ── */
+    * { box-sizing: border-box; }
+
+    html, body, .stApp {
+        background: var(--dark-base) !important;
+        font-family: 'Space Grotesk', sans-serif !important;
+        color: var(--text-main) !important;
+    }
+
+    /* ── Animated helix background on body ── */
+    .stApp::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background:
+            radial-gradient(ellipse 80% 60% at 10% 20%, rgba(162,89,255,0.07) 0%, transparent 60%),
+            radial-gradient(ellipse 60% 80% at 85% 70%, rgba(0,229,195,0.06) 0%, transparent 55%),
+            radial-gradient(ellipse 50% 50% at 50% 50%, rgba(76,201,240,0.04) 0%, transparent 70%);
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--dark-base); }
+    ::-webkit-scrollbar-thumb { background: var(--dna-teal); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--dna-violet); }
+
+    /* ── Main header ── */
     .main-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 2rem;
-        border-radius: 10px;
+        background: linear-gradient(135deg, #0d1b2a 0%, #112240 50%, #0d1b2a 100%);
+        border: 1px solid var(--dark-border);
+        border-radius: 20px;
+        padding: 2.5rem 2rem;
         margin-bottom: 2rem;
-        color: white;
         text-align: center;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 0 60px rgba(0,229,195,0.08), 0 0 120px rgba(162,89,255,0.05);
     }
-    
+
+    .main-header::before {
+        content: '';
+        position: absolute;
+        top: -2px; left: -2px; right: -2px; bottom: -2px;
+        background: linear-gradient(90deg, var(--dna-teal), var(--dna-violet), var(--dna-blue), var(--dna-teal));
+        background-size: 300% 100%;
+        border-radius: 21px;
+        z-index: -1;
+        animation: borderShimmer 4s linear infinite;
+        opacity: 0.6;
+    }
+
+    @keyframes borderShimmer {
+        0%   { background-position: 0% 50%; }
+        100% { background-position: 300% 50%; }
+    }
+
+    .main-header h1 {
+        font-family: 'Orbitron', monospace !important;
+        font-size: 2.6rem !important;
+        font-weight: 900 !important;
+        background: linear-gradient(90deg, var(--dna-teal), var(--dna-blue), var(--dna-violet));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin: 0 0 0.4rem 0 !important;
+        letter-spacing: 2px;
+        text-shadow: none;
+        animation: pulseGlow 3s ease-in-out infinite;
+    }
+
+    @keyframes pulseGlow {
+        0%, 100% { filter: brightness(1); }
+        50%       { filter: brightness(1.2); }
+    }
+
+    .main-header h3 {
+        color: var(--dna-teal) !important;
+        font-size: 1.1rem !important;
+        font-weight: 400 !important;
+        letter-spacing: 3px !important;
+        text-transform: uppercase;
+        margin: 0 0 0.8rem 0 !important;
+        opacity: 0.9;
+    }
+
+    .main-header p {
+        color: var(--text-muted) !important;
+        font-size: 0.95rem !important;
+        margin: 0 !important;
+        max-width: 640px;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        line-height: 1.6;
+    }
+
+    /* ── DNA strand decorative dots ── */
+    .main-header::after {
+        content: '● ○ ● ○ ● ○ ● ○ ● ○ ● ○ ● ○ ● ○ ● ○ ● ○';
+        position: absolute;
+        bottom: 10px;
+        left: 0; right: 0;
+        text-align: center;
+        font-size: 8px;
+        letter-spacing: 6px;
+        color: rgba(0,229,195,0.25);
+        pointer-events: none;
+    }
+
+    /* ── Sidebar ── */
+    section[data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #0d1420 0%, #0f1a2e 100%) !important;
+        border-right: 1px solid var(--dark-border) !important;
+    }
+
+    section[data-testid="stSidebar"] * {
+        font-family: 'Space Grotesk', sans-serif !important;
+        color: var(--text-main) !important;
+    }
+
+    section[data-testid="stSidebar"] h2,
+    section[data-testid="stSidebar"] h3,
+    section[data-testid="stSidebar"] .sidebar-header {
+        color: var(--dna-teal) !important;
+        font-weight: 600 !important;
+        letter-spacing: 1px;
+    }
+
+    section[data-testid="stSidebar"] .stMarkdown h2 {
+        font-size: 1rem !important;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        color: var(--dna-teal) !important;
+        border-bottom: 1px solid rgba(0,229,195,0.2);
+        padding-bottom: 0.4rem;
+        margin-bottom: 0.8rem;
+    }
+
+    section[data-testid="stSidebar"] .stMarkdown h3 {
+        font-size: 0.8rem !important;
+        color: var(--dna-violet) !important;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+    }
+
+    /* ── Selectbox / Multiselect / Radio ── */
+    .stSelectbox > div > div,
+    .stMultiSelect > div > div {
+        background: var(--dark-panel) !important;
+        border: 1px solid var(--dark-border) !important;
+        border-radius: 10px !important;
+        color: var(--text-main) !important;
+        font-family: 'Space Grotesk', sans-serif !important;
+    }
+
+    .stSelectbox > div > div:focus-within,
+    .stMultiSelect > div > div:focus-within {
+        border-color: var(--dna-teal) !important;
+        box-shadow: 0 0 0 3px rgba(0,229,195,0.15) !important;
+    }
+
+    /* Multiselect tags */
+    .stMultiSelect span[data-baseweb="tag"] {
+        background: linear-gradient(90deg, rgba(0,229,195,0.2), rgba(162,89,255,0.2)) !important;
+        border: 1px solid rgba(0,229,195,0.4) !important;
+        border-radius: 6px !important;
+        color: var(--dna-teal) !important;
+        font-family: 'JetBrains Mono', monospace !important;
+        font-size: 0.75rem !important;
+    }
+
+    /* ── Buttons ── */
+    .stButton > button {
+        background: linear-gradient(135deg, var(--dark-panel), #0f2340) !important;
+        border: 1px solid rgba(0,229,195,0.35) !important;
+        color: var(--dna-teal) !important;
+        border-radius: 10px !important;
+        font-family: 'Space Grotesk', sans-serif !important;
+        font-weight: 600 !important;
+        letter-spacing: 0.5px;
+        transition: all 0.25s ease !important;
+    }
+
+    .stButton > button:hover {
+        background: linear-gradient(135deg, rgba(0,229,195,0.12), rgba(162,89,255,0.12)) !important;
+        border-color: var(--dna-teal) !important;
+        box-shadow: 0 0 20px rgba(0,229,195,0.2) !important;
+        transform: translateY(-1px);
+        color: #ffffff !important;
+    }
+
+    /* Primary analyze button */
+    .stButton > button[kind="primary"],
+    div[data-testid="stButton"] > button[kind="primary"] {
+        background: linear-gradient(135deg, #00b894, #0984e3, #6c5ce7) !important;
+        background-size: 200% auto !important;
+        border: none !important;
+        color: #ffffff !important;
+        font-size: 1.05rem !important;
+        padding: 0.75rem 2rem !important;
+        border-radius: 12px !important;
+        letter-spacing: 1px;
+        box-shadow: 0 4px 24px rgba(0,229,195,0.25) !important;
+        animation: gradientShift 3s ease infinite !important;
+        text-transform: uppercase;
+    }
+
+    @keyframes gradientShift {
+        0%   { background-position: 0% 50%; }
+        50%  { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    .stButton > button[kind="primary"]:hover {
+        transform: translateY(-2px) scale(1.01) !important;
+        box-shadow: 0 8px 32px rgba(0,229,195,0.35), 0 0 60px rgba(162,89,255,0.15) !important;
+    }
+
+    /* ── Download button ── */
+    .stDownloadButton > button {
+        background: linear-gradient(135deg, rgba(180,244,66,0.1), rgba(0,229,195,0.1)) !important;
+        border: 1px solid rgba(180,244,66,0.4) !important;
+        color: var(--dna-lime) !important;
+        border-radius: 10px !important;
+        font-family: 'Space Grotesk', sans-serif !important;
+        font-weight: 600 !important;
+        transition: all 0.25s ease !important;
+    }
+
+    .stDownloadButton > button:hover {
+        background: linear-gradient(135deg, rgba(180,244,66,0.2), rgba(0,229,195,0.15)) !important;
+        box-shadow: 0 0 20px rgba(180,244,66,0.2) !important;
+        transform: translateY(-1px);
+    }
+
+    /* ── Text area ── */
+    .stTextArea textarea {
+        background: var(--dark-panel) !important;
+        border: 1px solid var(--dark-border) !important;
+        border-radius: 12px !important;
+        color: var(--text-main) !important;
+        font-family: 'JetBrains Mono', monospace !important;
+        font-size: 0.85rem !important;
+        line-height: 1.6 !important;
+        transition: border-color 0.2s ease;
+    }
+
+    .stTextArea textarea:focus {
+        border-color: var(--dna-teal) !important;
+        box-shadow: 0 0 0 3px rgba(0,229,195,0.12), 0 0 20px rgba(0,229,195,0.08) !important;
+        outline: none !important;
+    }
+
+    /* ── File uploader ── */
+    .stFileUploader > div {
+        background: var(--dark-panel) !important;
+        border: 2px dashed rgba(0,229,195,0.3) !important;
+        border-radius: 14px !important;
+        transition: all 0.25s ease;
+    }
+
+    .stFileUploader > div:hover {
+        border-color: var(--dna-teal) !important;
+        background: rgba(0,229,195,0.04) !important;
+    }
+
+    /* ── Radio buttons ── */
+    .stRadio > div {
+        gap: 0.5rem;
+    }
+
+    .stRadio label {
+        background: var(--dark-panel) !important;
+        border: 1px solid var(--dark-border) !important;
+        border-radius: 8px !important;
+        padding: 0.3rem 0.8rem !important;
+        cursor: pointer !important;
+        transition: all 0.2s ease !important;
+        font-family: 'Space Grotesk', sans-serif !important;
+    }
+
+    .stRadio label:hover {
+        border-color: var(--dna-teal) !important;
+        background: rgba(0,229,195,0.06) !important;
+    }
+
+    /* ── Slider ── */
+    .stSlider > div > div > div > div {
+        background: linear-gradient(90deg, var(--dna-teal), var(--dna-violet)) !important;
+    }
+
+    .stSlider > div > div > div > div > div {
+    }
+
+    /* ── DataFrames / Tables ── */
+    .stDataFrame {
+        border: 1px solid var(--dark-border) !important;
+        border-radius: 12px !important;
+        overflow: hidden !important;
+    }
+
+    .stDataFrame thead tr th {
+        background: linear-gradient(135deg, #0d1b2a, #1a2a45) !important;
+        color: var(--dna-teal) !important;
+        font-family: 'Space Grotesk', sans-serif !important;
+        font-weight: 600 !important;
+        font-size: 0.8rem !important;
+        text-transform: uppercase !important;
+        letter-spacing: 1px !important;
+        border-bottom: 1px solid var(--dark-border) !important;
+        padding: 0.8rem 1rem !important;
+    }
+
+    .stDataFrame tbody tr td {
+        background: var(--dark-card) !important;
+        color: var(--text-main) !important;
+        font-family: 'JetBrains Mono', monospace !important;
+        font-size: 0.82rem !important;
+        border-bottom: 1px solid rgba(255,255,255,0.04) !important;
+        padding: 0.6rem 1rem !important;
+    }
+
+    .stDataFrame tbody tr:hover td {
+        background: rgba(0,229,195,0.05) !important;
+    }
+
+    /* ── Spinner ── */
+    .stSpinner > div {
+        border-top-color: var(--dna-teal) !important;
+    }
+
+    /* ── Section headings ── */
+    .stMarkdown h2 {
+        font-family: 'Space Grotesk', sans-serif !important;
+        font-weight: 600 !important;
+        font-size: 1.3rem !important;
+        color: var(--text-main) !important;
+        position: relative;
+        padding-left: 1rem;
+        margin-top: 1.5rem !important;
+    }
+
+    .stMarkdown h2::before {
+        content: '';
+        position: absolute;
+        left: 0; top: 15%; bottom: 15%;
+        width: 3px;
+        border-radius: 2px;
+        background: linear-gradient(180deg, var(--dna-teal), var(--dna-violet));
+    }
+
+    .stMarkdown h3 {
+        font-family: 'Space Grotesk', sans-serif !important;
+        font-weight: 600 !important;
+        font-size: 1.1rem !important;
+        color: var(--dna-blue) !important;
+        letter-spacing: 0.5px;
+    }
+
+    /* ── Alert/Info/Success/Warning ── */
+    .stSuccess > div {
+        background: linear-gradient(135deg, rgba(0,184,148,0.12), rgba(0,229,195,0.08)) !important;
+        border: 1px solid rgba(0,229,195,0.35) !important;
+        border-radius: 10px !important;
+        color: var(--dna-teal) !important;
+        font-family: 'Space Grotesk', sans-serif !important;
+    }
+
+    .stInfo > div {
+        background: linear-gradient(135deg, rgba(76,201,240,0.1), rgba(162,89,255,0.08)) !important;
+        border: 1px solid rgba(76,201,240,0.3) !important;
+        border-radius: 10px !important;
+        color: var(--dna-blue) !important;
+        font-family: 'Space Grotesk', sans-serif !important;
+    }
+
+    .stWarning > div {
+        background: linear-gradient(135deg, rgba(255,186,8,0.1), rgba(255,107,107,0.08)) !important;
+        border: 1px solid rgba(255,186,8,0.3) !important;
+        border-radius: 10px !important;
+        color: var(--dna-amber) !important;
+        font-family: 'Space Grotesk', sans-serif !important;
+    }
+
+    .stError > div {
+        background: linear-gradient(135deg, rgba(247,37,133,0.1), rgba(255,107,107,0.08)) !important;
+        border: 1px solid rgba(247,37,133,0.35) !important;
+        border-radius: 10px !important;
+        color: var(--dna-coral) !important;
+        font-family: 'Space Grotesk', sans-serif !important;
+    }
+
+    /* ── Custom component boxes ── */
     .feature-box {
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        padding: 1.5rem;
-        border-radius: 10px;
+        background: linear-gradient(135deg, rgba(247,37,133,0.12) 0%, rgba(255,107,107,0.08) 100%);
+        border: 1px solid rgba(247,37,133,0.3);
+        padding: 1.4rem;
+        border-radius: 14px;
         margin: 1rem 0;
-        color: #000000;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        color: var(--text-main);
+        font-family: 'Space Grotesk', sans-serif;
         font-weight: 500;
+        position: relative;
+        overflow: hidden;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
     }
-    
+
+    .feature-box::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0;
+        width: 4px; height: 100%;
+        background: linear-gradient(180deg, var(--dna-pink), var(--dna-coral));
+        border-radius: 4px 0 0 4px;
+    }
+
+    .feature-box:hover {
+        border-color: rgba(247,37,133,0.5);
+        box-shadow: 0 0 24px rgba(247,37,133,0.12);
+    }
+
+    /* Result box — sequence output */
     .result-box {
-        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        background: linear-gradient(135deg, rgba(76,201,240,0.06) 0%, rgba(0,229,195,0.04) 100%);
+        border: 1px solid rgba(76,201,240,0.25);
         padding: 1.5rem;
-        border-radius: 10px;
+        border-radius: 16px;
         margin: 1rem 0;
-        color: #000000;
-        font-family: 'Courier New', monospace;
-        font-weight: 500;
+        color: var(--text-main);
+        position: relative;
+        overflow: hidden;
+        transition: box-shadow 0.3s ease;
     }
-    
+
+    .result-box::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0;
+        width: 4px; height: 100%;
+        background: linear-gradient(180deg, var(--dna-blue), var(--dna-teal));
+    }
+
+    .result-box:hover {
+        box-shadow: 0 0 30px rgba(76,201,240,0.1);
+    }
+
+    .result-box h4 {
+        font-family: 'Space Grotesk', sans-serif;
+        color: var(--dna-blue);
+        font-weight: 600;
+        margin: 0 0 1rem 0;
+        font-size: 1rem;
+        letter-spacing: 0.5px;
+    }
+
+    /* Info box — how-it-works */
     .info-box {
-        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-        padding: 1rem;
-        border-radius: 8px;
+        background: linear-gradient(135deg, rgba(0,229,195,0.08) 0%, rgba(76,201,240,0.05) 100%);
+        border: 1px solid rgba(0,229,195,0.22);
+        padding: 1.2rem 1.4rem;
+        border-radius: 14px;
         margin: 1rem 0;
-        color: #000000;
-        border-left: 4px solid #38a169;
-        font-weight: 500;
+        color: var(--text-main);
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 400;
+        position: relative;
+        overflow: hidden;
     }
-    
+
+    .info-box::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0;
+        width: 4px; height: 100%;
+        background: linear-gradient(180deg, var(--dna-teal), var(--dna-blue));
+    }
+
+    .info-box h4 {
+        color: var(--dna-teal);
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 600;
+        margin: 0 0 0.8rem 0;
+        font-size: 0.95rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .info-box ol li,
+    .info-box ul li {
+        color: var(--text-main);
+        margin-bottom: 0.4rem;
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
+
+    .info-box b {
+        color: var(--dna-teal);
+    }
+
+    /* Warning box */
     .warning-box {
-        background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
-        padding: 1rem;
-        border-radius: 8px;
+        background: linear-gradient(135deg, rgba(255,186,8,0.08) 0%, rgba(255,107,107,0.06) 100%);
+        border: 1px solid rgba(255,186,8,0.28);
+        padding: 1rem 1.3rem;
+        border-radius: 14px;
         margin: 1rem 0;
-        color: #000000;
-        border-left: 4px solid #ed8936;
-        font-weight: 500;
+        color: var(--text-main);
+        font-family: 'Space Grotesk', sans-serif;
+        position: relative;
     }
-    
+
+    .warning-box::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0;
+        width: 4px; height: 100%;
+        background: linear-gradient(180deg, var(--dna-amber), var(--dna-coral));
+        border-radius: 4px 0 0 4px;
+    }
+
+    .warning-box h4 {
+        color: var(--dna-amber);
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 600;
+        margin: 0 0 0.5rem 0;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .warning-box p {
+        color: var(--text-muted) !important;
+        font-size: 0.85rem !important;
+        margin: 0.2rem 0 !important;
+    }
+
+    .warning-box strong {
+        color: var(--dna-amber) !important;
+    }
+
+    /* ── Stats container ── */
     .stats-container {
         display: flex;
         justify-content: space-around;
-        margin: 2rem 0;
-    }
-    
-    .stat-box {
-        background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-        padding: 1rem;
-        border-radius: 10px;
-        text-align: center;
-        min-width: 150px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-    
-    .dna-sequence {
-        font-family: 'Courier New', monospace;
-        font-size: 14px;
-        line-height: 1.5;
-        background-color: #f8f9fa;
-        padding: 1rem;
-        border-radius: 5px;
-        border: 1px solid #dee2e6;
-        word-break: break-all;
-    }
-    
-    .restriction-site {
-        background-color: #fff3cd;
-        padding: 0.2rem 0.4rem;
-        border-radius: 3px;
-        font-weight: bold;
-        color: #856404;
-    }
-    
-    .mutation-highlight {
-        background-color: #f8d7da;
-        padding: 0.2rem 0.4rem;
-        border-radius: 3px;
-        font-weight: bold;
-        color: #721c24;
+        gap: 1rem;
+        margin: 1.8rem 0;
+        flex-wrap: wrap;
     }
 
-    .stTextArea textarea {
-        font-family: 'Courier New', monospace;
+    .stat-box {
+        background: linear-gradient(135deg, var(--dark-card), var(--dark-panel));
+        border: 1px solid var(--dark-border);
+        padding: 1.2rem 1.5rem;
+        border-radius: 14px;
+        text-align: center;
+        min-width: 140px;
+        flex: 1;
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
     }
-    
-    .sidebar .sidebar-content {
-        background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+
+    .stat-box::after {
+        content: '';
+        position: absolute;
+        bottom: 0; left: 0; right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--dna-teal), var(--dna-violet), var(--dna-blue));
+        border-radius: 0 0 14px 14px;
     }
+
+    .stat-box:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 30px rgba(0,229,195,0.12);
+    }
+
+    .stat-box h3 {
+        font-family: 'Orbitron', monospace !important;
+        font-size: 1.8rem !important;
+        font-weight: 700 !important;
+        color: var(--dna-teal) !important;
+        margin: 0 0 0.3rem 0 !important;
+        letter-spacing: 1px;
+    }
+
+    .stat-box p {
+        color: var(--text-muted) !important;
+        font-size: 0.75rem !important;
+        text-transform: uppercase !important;
+        letter-spacing: 1.5px !important;
+        margin: 0 !important;
+        font-weight: 500 !important;
+    }
+
+    /* ── DNA Sequence display ── */
+    .dna-sequence {
+        font-family: 'JetBrains Mono', monospace !important;
+        font-size: 13px !important;
+        line-height: 1.8 !important;
+        background: rgba(10, 14, 26, 0.9) !important;
+        padding: 1.2rem !important;
+        border-radius: 10px !important;
+        border: 1px solid rgba(0,229,195,0.15) !important;
+        word-break: break-all !important;
+        color: var(--text-main) !important;
+    }
+
+    /* ── Restriction site highlight ── */
+    .restriction-site {
+        background: rgba(255,186,8,0.15) !important;
+        border: 1px solid rgba(255,186,8,0.4) !important;
+        padding: 0.15rem 0.4rem !important;
+        border-radius: 4px !important;
+        font-weight: 700 !important;
+        color: var(--dna-amber) !important;
+        font-family: 'JetBrains Mono', monospace !important;
+        box-shadow: 0 0 8px rgba(255,186,8,0.15);
+    }
+
+    /* ── Mutation highlight ── */
+    .mutation-highlight {
+        background: rgba(247,37,133,0.15) !important;
+        border: 1px solid rgba(247,37,133,0.4) !important;
+        padding: 0.15rem 0.4rem !important;
+        border-radius: 4px !important;
+        font-weight: 700 !important;
+        color: var(--dna-pink) !important;
+        font-family: 'JetBrains Mono', monospace !important;
+        box-shadow: 0 0 8px rgba(247,37,133,0.12);
+    }
+
+    /* ── Mutation animation blocks ── */
+    @keyframes fadeInMove {
+        0%   { opacity: 0; transform: translateY(24px) scale(0.97); }
+        100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .mutation-anim-block {
+        animation: fadeInMove 0.7s cubic-bezier(.4,0,.2,1);
+    }
+
+    .mutation-aa-change {
+        background: rgba(247,37,133,0.15);
+        color: var(--dna-pink);
+        border-radius: 6px;
+        padding: 0.2em 0.6em;
+        font-weight: 700;
+        border: 1px solid rgba(247,37,133,0.35);
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 1.05em;
+        letter-spacing: 1px;
+    }
+
+    .mutation-arrow {
+        font-size: 1.5em;
+        margin: 0 0.5em;
+        vertical-align: middle;
+        color: var(--dna-blue);
+        animation: fadeInMove 1s cubic-bezier(.4,0,.2,1);
+    }
+
+    .mutation-silent {
+        color: var(--dna-teal) !important;
+        font-size: 0.95em;
+        margin-left: 0.5em;
+        font-weight: 600;
+        background: rgba(0,229,195,0.1);
+        padding: 0.15em 0.7em;
+        border-radius: 20px;
+        border: 1px solid rgba(0,229,195,0.3);
+        display: inline-block;
+        letter-spacing: 0.5px;
+    }
+
+    .mutation-nonsilent {
+        color: var(--dna-coral) !important;
+        font-size: 0.95em;
+        margin-left: 0.5em;
+        font-weight: 600;
+        background: rgba(255,107,107,0.1);
+        padding: 0.15em 0.7em;
+        border-radius: 20px;
+        border: 1px solid rgba(255,107,107,0.3);
+        display: inline-block;
+        letter-spacing: 0.5px;
+    }
+
+    /* ── Column divider ── */
+    [data-testid="column"] {
+        padding: 0 0.5rem !important;
+    }
+
+    /* ── Expander / Detail blocks ── */
+    .streamlit-expanderHeader {
+        background: var(--dark-panel) !important;
+        border: 1px solid var(--dark-border) !important;
+        border-radius: 10px !important;
+        color: var(--dna-teal) !important;
+        font-family: 'Space Grotesk', sans-serif !important;
+    }
+
+    /* ── Label text everywhere ── */
+    label, .stMarkdown p {
+        color: var(--text-muted) !important;
+        font-family: 'Space Grotesk', sans-serif !important;
+        font-size: 0.9rem !important;
+    }
+
+    /* Override for content text in boxes (allow inline styling) */
+    .info-box p, .result-box p, .feature-box p, .warning-box p {
+        color: inherit !important;
+    }
+
+    /* ── Divider ── */
+    hr {
+        border-color: var(--dark-border) !important;
+        margin: 1.5rem 0 !important;
+    }
+
+    /* ── Section header pill ── */
+    .section-pill {
+        display: inline-block;
+        background: linear-gradient(90deg, rgba(0,229,195,0.15), rgba(162,89,255,0.1));
+        border: 1px solid rgba(0,229,195,0.3);
+        color: var(--dna-teal);
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 600;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        padding: 0.25rem 0.8rem;
+        border-radius: 20px;
+        margin-bottom: 0.5rem;
+    }
+
+    /* ── Spinner text ── */
+    .stSpinner p {
+        color: var(--dna-teal) !important;
+        font-family: 'JetBrains Mono', monospace !important;
+        font-size: 0.85rem !important;
+        letter-spacing: 1px;
+    }
+
+    /* ── Footer ── */
+    footer { display: none !important; }
+    #MainMenu { visibility: hidden; }
+
+    /* ── Block container ── */
+    .block-container {
+        padding-top: 2rem !important;
+        padding-bottom: 3rem !important;
+        max-width: 1400px !important;
+    }
+
+    /* ── Animated nucleotide colors in sequence ── */
+    span[style*="color:#1f77b4"] { color: #4cc9f0 !important; }   /* A = bright blue  */
+    span[style*="color:#d62728"] { color: #ff6b6b !important; }   /* T = coral        */
+    span[style*="color:#2ca02c"] { color: #b4f442 !important; }   /* G = lime green   */
+    span[style*="color:#ff7f0e"] { color: #ffba08 !important; }   /* C = amber        */
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -252,7 +931,7 @@ def main():
     st.markdown("""
     <div class="main-header">
         <h1>🧬 Mutate for Digest</h1>
-        <h3>Bioinformatics Tool For Restriction Site & Mutation Analysis </h3>
+        <h3>Restriction Site &amp; Mutation Analysis</h3>
         <p>Find restriction enzyme sites in your DNA, and see what small changes could add new sites. Check how these changes affect the protein.</p>
     </div>
     """, unsafe_allow_html=True)
@@ -448,7 +1127,7 @@ gacaatgaatag"""
                 st.markdown(f"""
                 <div class="info-box">
                     <h4>🧬 Selected Restriction Enzymes:</h4>
-                    <pre>{enzyme_display}</pre>
+                    <pre style="font-family:'JetBrains Mono',monospace; font-size:0.85rem; color:var(--dna-teal); margin:0;">{enzyme_display}</pre>
                 </div>
                 """, unsafe_allow_html=True)
             else:
@@ -459,34 +1138,33 @@ gacaatgaatag"""
         
         st.markdown("""
         <div class="info-box" style="max-height: 300px; overflow-y: auto;">
-            <h4>🧬 How This Tool Works (Step by Step)</h4>
-            <ol style="padding-left: 1.2em;">
-            <li><b>Input DNA Sequence:</b> Paste or upload your DNA sequence in FASTA format. The tool will clean and process your input automatically.</li>
-            <li><b>Select Restriction Enzymes:</b> Choose enzymes from the database or enter custom recognition patterns. Each enzyme has a specific DNA sequence it recognizes and cuts.</li>
-            <li><b>Scan for Sites:</b> The tool searches your DNA for exact matches to the selected restriction sites and shows their positions.</li>
-            <li><b>Suggest Mutations:</b> If a restriction site is not present, the tool finds places where a small change (mutation) could create a new site. It suggests which bases to change and highlights if this would also change the protein sequence.</li>
-            <li><b>Protein Translation:</b> The DNA is translated into its protein sequence (amino acids) in your chosen reading frame. If a suggested mutation changes the protein, this is clearly shown.</li>
-            <li><b>Visual Results:</b> All results are shown in tables and color-coded sequence views. You can see where enzymes cut, where mutations could help, and how the protein is affected.</li>
-            <li><b>Interactive Sequence Visualization:</b> The DNA sequence is displayed with color-coded nucleotides. Restriction enzyme cut sites are highlighted and labeled directly above the affected bases, making it easy to spot where each enzyme acts. Mutations that introduce new sites are also visually marked, and amino acid changes are highlighted in the protein translation view.</li>
-            <li><b>Download Everything:</b> All results, including tables and sequences, can be downloaded for your records or further analysis.</li>
+            <h4>🧬 How This Tool Works</h4>
+            <ol style="padding-left: 1.2em; margin:0;">
+            <li><b>Input DNA Sequence:</b> Paste or upload your DNA in FASTA format.</li>
+            <li><b>Select Restriction Enzymes:</b> Choose from the database or enter custom patterns.</li>
+            <li><b>Scan for Sites:</b> Searches your DNA for exact matches and shows positions.</li>
+            <li><b>Suggest Mutations:</b> Finds where a small change could create a new site.</li>
+            <li><b>Protein Translation:</b> Translates DNA to amino acids in your chosen reading frame.</li>
+            <li><b>Visual Results:</b> Color-coded sequences and tables for easy analysis.</li>
+            <li><b>Sequence Visualization:</b> DNA displayed with cut sites highlighted and labeled.</li>
+            <li><b>Download Everything:</b> Export tables and sequences for further analysis.</li>
             </ol>
-            <p style="font-size: 0.95em; color: #222;">
-            <b>Tip:</b> This tool is designed to help with cloning, mutagenesis, and synthetic biology. It makes it easy to plan restriction digests and check the impact of introducing new sites.<br>
-            <b>Visual Guide:</b> Colored letters represent nucleotides (A, T, G, C). Enzyme names appear above cut sites, and highlighted backgrounds show where mutations or amino acid changes occur.
+            <p style="font-size: 0.85em; color: var(--text-muted); margin-top: 0.6rem; margin-bottom:0;">
+            <b>Tip:</b> Designed for cloning, mutagenesis, and synthetic biology.
             </p>
         </div>
         """, unsafe_allow_html=True)
         
         st.markdown("""
         <div class="warning-box">
-            <h4>⚠️ Input Format:</h4>
-            <p><strong>DNA:</strong> FASTA format with header</p>
+            <h4>⚠️ Input Format</h4>
+            <p><strong>DNA:</strong> FASTA format with header line</p>
             <p><strong>Sites:</strong> /PATTERN/ (Name)Distance</p>
         </div>
         """, unsafe_allow_html=True)
 
     # Analysis button
-    if st.button("🚀 Analyze Sequence", type="primary", use_container_width=True):
+    if st.button("🚀 Analyze Sequence", type="primary", width="stretch"):
         if dna_input and restriction_sites_list:
             with st.spinner("Analyzing DNA sequence..."):
                 # Process input
@@ -530,22 +1208,22 @@ gacaatgaatag"""
                     gc_content = (new_dna.upper().count('G') + new_dna.upper().count('C')) / len(new_dna) * 100
                     
                     st.markdown(f"""
-                    <div class="stats-container" style="color: #222; font-family: 'Segoe UI', 'Arial', sans-serif;">
-                        <div class="stat-box" style="color: #222;">
-                            <h3 style="color: #222; font-weight: 700; font-family: 'Segoe UI', 'Arial', sans-serif;">{len(new_dna)}</h3>
-                            <p style="color: #444; font-size: 1.1em; font-family: 'Segoe UI', 'Arial', sans-serif;">Base Pairs</p>
+                    <div class="stats-container">
+                        <div class="stat-box">
+                            <h3>{len(new_dna)}</h3>
+                            <p>Base Pairs</p>
                         </div>
-                        <div class="stat-box" style="color: #222;">
-                            <h3 style="color: #222; font-weight: 700; font-family: 'Segoe UI', 'Arial', sans-serif;">{gc_content:.1f}%</h3>
-                            <p style="color: #444; font-size: 1.1em; font-family: 'Segoe UI', 'Arial', sans-serif;">GC Content</p>
+                        <div class="stat-box">
+                            <h3>{gc_content:.1f}%</h3>
+                            <p>GC Content</p>
                         </div>
-                        <div class="stat-box" style="color: #222;">
-                            <h3 style="color: #222; font-weight: 700; font-family: 'Segoe UI', 'Arial', sans-serif;">{topology.title()}</h3>
-                            <p style="color: #444; font-size: 1.1em; font-family: 'Segoe UI', 'Arial', sans-serif;">Topology</p>
+                        <div class="stat-box">
+                            <h3>{topology.title()}</h3>
+                            <p>Topology</p>
                         </div>
-                        <div class="stat-box" style="color: #222;">
-                            <h3 style="color: #222; font-weight: 700; font-family: 'Segoe UI', 'Arial', sans-serif;">{len(restriction_sites_list)}</h3>
-                            <p style="color: #444; font-size: 1.1em; font-family: 'Segoe UI', 'Arial', sans-serif;">Restriction Sites</p>
+                        <div class="stat-box">
+                            <h3>{len(restriction_sites_list)}</h3>
+                            <p>Enzymes</p>
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
@@ -568,7 +1246,7 @@ gacaatgaatag"""
                             })
                         
                         df_sites = pd.DataFrame(sites_data)
-                        st.dataframe(df_sites, use_container_width=True)
+                        st.dataframe(df_sites, width="stretch")
                     else:
                         st.info("No restriction sites found with current parameters.")
                     
@@ -585,7 +1263,7 @@ gacaatgaatag"""
                             })
                         
                         df_mutations = pd.DataFrame(mut_data)
-                        st.dataframe(df_mutations, use_container_width=True)
+                        st.dataframe(df_mutations, width="stretch")
                     else:
                         st.info("No potential mutation sites found.")
                     
@@ -726,7 +1404,7 @@ gacaatgaatag"""
                         st.markdown(f"""
                         <div class="result-box">
                             <h4>📝 {title} (Reading Frame {rf})</h4>
-                            <div class="dna-sequence" style="background:#f8f9fa; border:1px solid #dee2e6; border-radius:5px; padding:1rem; font-size:20px; max-height:350px; overflow-y:auto; overflow-x:hidden; white-space:pre-line;">
+                            <div class="dna-sequence" style="max-height:350px; overflow-y:auto; overflow-x:hidden; white-space:pre-line; font-size:20px;">
                                 {formatted_sequence}
                             </div>
                         </div>
@@ -735,7 +1413,7 @@ gacaatgaatag"""
                         st.markdown(f"""
                         <div class="result-box">
                             <h4>🧬 Amino Acid Sequence (Original, Reading Frame {rf})</h4>
-                            <div class="dna-sequence" style="background:#f8f9fa; border:1px solid #dee2e6; border-radius:5px; padding:1rem; font-size:22px; max-height:350px; overflow-y:auto; overflow-x:hidden; white-space:pre-line;">
+                            <div class="dna-sequence" style="max-height:350px; overflow-y:auto; overflow-x:hidden; white-space:pre-line; font-size:22px;">
                                 {formatted_translation}
                             </div>
                         </div>
@@ -744,7 +1422,7 @@ gacaatgaatag"""
                         st.markdown(f"""
                         <div class="result-box">
                             <h4>🧬 Amino Acid Sequence (With Mutation, Reading Frame {rf})</h4>
-                            <div class="dna-sequence" style="background:#f8f9fa; border:1px solid #dee2e6; border-radius:5px; padding:1rem; font-size:22px; max-height:350px; overflow-y:auto; overflow-x:hidden; white-space:pre-line;">
+                            <div class="dna-sequence" style="max-height:350px; overflow-y:auto; overflow-x:hidden; white-space:pre-line; font-size:22px;">
                                 {formatted_mut_translation}
                             </div>
                         </div>
@@ -756,12 +1434,12 @@ gacaatgaatag"""
                     # Mutation information (show ALL possible mutations, for ALL reading frames, with clear indication of protein-changing vs silent)
                     if mutant_collection.restriction_sites:
                         bg_gradients = [
-                            "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
-                            "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
-                            "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
-                            "linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%)",
-                            "linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)",
-                            "linear-gradient(135deg, #f8d7da 0%, #f093fb 100%)",
+                            "linear-gradient(135deg, rgba(247,37,133,0.12) 0%, rgba(255,107,107,0.08) 100%)",
+                            "linear-gradient(135deg, rgba(0,229,195,0.10) 0%, rgba(76,201,240,0.07) 100%)",
+                            "linear-gradient(135deg, rgba(162,89,255,0.12) 0%, rgba(76,201,240,0.08) 100%)",
+                            "linear-gradient(135deg, rgba(255,186,8,0.10) 0%, rgba(255,107,107,0.07) 100%)",
+                            "linear-gradient(135deg, rgba(180,244,66,0.10) 0%, rgba(0,229,195,0.07) 100%)",
+                            "linear-gradient(135deg, rgba(76,201,240,0.10) 0%, rgba(162,89,255,0.08) 100%)",
                         ]
                         # CSS for animation and highlights
                         st.markdown("""
@@ -774,13 +1452,13 @@ gacaatgaatag"""
                             animation: fadeInMove 0.9s cubic-bezier(.4,0,.2,1);
                         }
                         .mutation-aa-change {
-                            background: #f8d7da;
-                            color: #721c24;
-                            border-radius: 4px;
+                            background: rgba(247,37,133,0.15);
+                            color: #f72585;
+                            border-radius: 6px;
                             padding: 0.2em 0.5em;
                             font-weight: bold;
-                            border: 1px solid #f5c6cb;
-                            font-family: 'Courier New', monospace;
+                            border: 1px solid rgba(247,37,133,0.35);
+                            font-family: 'JetBrains Mono', monospace;
                             font-size: 1.1em;
                             transition: background 0.4s;
                         }
@@ -789,29 +1467,30 @@ gacaatgaatag"""
                             margin: 0 0.5em;
                             vertical-align: middle;
                             animation: fadeInMove 1.2s cubic-bezier(.4,0,.2,1);
+                            color: #4cc9f0;
                         }
                         .mutation-silent {
-                            color: #008000 !important;
-                            font-size: 1.1em;
+                            color: #00e5c3 !important;
+                            font-size: 1.0em;
                             margin-left: 0.5em;
                             font-weight: bold;
-                            background: #e6ffe6;
-                            padding: 0.15em 0.6em;
-                            border-radius: 4px;
-                            border: 1px solid #b2ffb2;
-                            box-shadow: 0 1px 4px rgba(0,128,0,0.07);
+                            background: rgba(0,229,195,0.1);
+                            padding: 0.15em 0.7em;
+                            border-radius: 20px;
+                            border: 1px solid rgba(0,229,195,0.3);
+                            box-shadow: 0 0 8px rgba(0,229,195,0.1);
                             display: inline-block;
                         }
                         .mutation-nonsilent {
-                            color: #b30000 !important;
-                            font-size: 1.1em;
+                            color: #ff6b6b !important;
+                            font-size: 1.0em;
                             margin-left: 0.5em;
                             font-weight: bold;
-                            background: #ffd6d6;
-                            padding: 0.15em 0.6em;
-                            border-radius: 4px;
-                            border: 1px solid #ffb2b2;
-                            box-shadow: 0 1px 4px rgba(179,0,0,0.07);
+                            background: rgba(255,107,107,0.1);
+                            padding: 0.15em 0.7em;
+                            border-radius: 20px;
+                            border: 1px solid rgba(255,107,107,0.3);
+                            box-shadow: 0 0 8px rgba(255,107,107,0.1);
                             display: inline-block;
                         }
                         </style>
@@ -868,31 +1547,31 @@ gacaatgaatag"""
                                 if not original_seq or not mutated_seq:
                                     continue
                                 block = f"""
-                                <div class="mutation-anim-block" style="background: {bg_gradients[idx % len(bg_gradients)]}; border-radius: 12px; margin-bottom: 1.2rem; padding: 1.2rem 1.2rem 1.2rem 1.2rem; box-shadow: 0 2px 8px rgba(0,0,0,0.07); transition: box-shadow 0.3s;">
+                                <div class="mutation-anim-block" style="background: {bg_gradients[idx % len(bg_gradients)]}; border: 1px solid rgba(0,229,195,0.15); border-radius: 14px; margin-bottom: 1.2rem; padding: 1.4rem; box-shadow: 0 2px 16px rgba(0,0,0,0.2); transition: box-shadow 0.3s, border-color 0.3s;">
                                     <div style="display: flex; align-items: center; gap: 1.2rem;">
                                         <div style="flex-shrink:0;">
-                                            <span style="display:inline-block; background:#fff3cd; color:#856404; font-weight:700; border-radius:50%; width:48px; height:48px; text-align:center; line-height:48px; font-size:1.7em; border:2px solid #ed8936; box-shadow:0 2px 8px #ffeaa7;">
+                                            <span style="display:inline-block; background:linear-gradient(135deg,rgba(255,186,8,0.2),rgba(255,107,107,0.15)); color:#ffba08; font-weight:700; border-radius:50%; width:52px; height:52px; text-align:center; line-height:52px; font-size:1.4em; border:1.5px solid rgba(255,186,8,0.4); font-family:'Orbitron',monospace; box-shadow:0 0 16px rgba(255,186,8,0.15);">
                                                 {enzyme_icon}
                                             </span>
                                         </div>
                                         <div style="flex-grow:1;">
-                                            <h4 style="margin:0 0 0.3em 0; color:#222;">{enzyme_display}</h4>
-                                            <div style="font-size:1.1em; margin-bottom:0.5em;">
-                                                <b>Restriction site can be introduced at:</b> <span style="color:#721c24;">Position {pos+1}</span> (Reading Frame {rf})
+                                            <h4 style="margin:0 0 0.4em 0; color:#e8f4f8; font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:1.05rem;">{enzyme_display}</h4>
+                                            <div style="font-size:0.95em; margin-bottom:0.6em; color:#8fa3b1;">
+                                                <b style="color:#4cc9f0;">Restriction site</b> can be introduced at: <span style="color:#f72585; font-family:'JetBrains Mono',monospace;">Position {pos+1}</span> &nbsp;(Reading Frame {rf})
                                             </div>
-                                            <div style="display:flex; align-items:center; gap:0.7em; margin-bottom:0.4em;">
-                                                <span style="font-family:'Courier New',monospace; background:#f8f9fa; border-radius:4px; padding:0.2em 0.5em; border:1px solid #dee2e6;">
+                                            <div style="display:flex; align-items:center; gap:0.7em; margin-bottom:0.5em;">
+                                                <span style="font-family:'JetBrains Mono',monospace; background:rgba(0,0,0,0.3); border-radius:6px; padding:0.25em 0.6em; border:1px solid rgba(255,255,255,0.1); color:#e8f4f8; font-size:0.9em;">
                                                     {original_seq}
                                                 </span>
                                                 <span class="mutation-arrow">→</span>
-                                                <span style="font-family:'Courier New',monospace; background:#ffeaa7; border-radius:4px; padding:0.2em 0.5em; border:1px solid #ed8936;">
+                                                <span style="font-family:'JetBrains Mono',monospace; background:rgba(255,186,8,0.12); border-radius:6px; padding:0.25em 0.6em; border:1px solid rgba(255,186,8,0.35); color:#ffba08; font-size:0.9em; font-weight:600;">
                                                     {mutated_seq}
                                                 </span>
                                             </div>
-                                            <div style="margin-top:0.5em; font-size:1.08em;">
-                                                <b>Amino acid change:</b>
+                                            <div style="margin-top:0.5em; font-size:1.0em;">
+                                                <span style="color:#8fa3b1; font-size:0.9em;">Amino acid change:</span>
                                                 <span class="mutation-aa-change">{orig_aa}{aa_idx}{mut_aa}</span>
-                                                {f"<span class='mutation-silent'>&#10004; Silent</span>" if is_silent else "<span class='mutation-nonsilent'>&#9888; Protein-Might-change</span>"}
+                                                {f"<span class='mutation-silent'>&#10004; Silent</span>" if is_silent else "<span class='mutation-nonsilent'>&#9888; Protein may change</span>"}
                                             </div>
                                         </div>
                                     </div>
@@ -903,8 +1582,8 @@ gacaatgaatag"""
                         if enzyme_blocks:
                             st.markdown(
                                 f"""
-                                <div class="info-box" style="max-height: 500px; overflow-y: auto; padding-right: 1em;">
-                                    <h4 style="margin-bottom:1em;">🔄 Mutation Information (All Reading Frames)</h4>
+                                <div class="info-box" style="max-height: 520px; overflow-y: auto; padding-right: 1em;">
+                                    <h4 style="margin-bottom:1em;">🔄 Mutation Information — All Reading Frames</h4>
                                     {''.join(enzyme_blocks)}
                                 </div>
                                 """,
@@ -1023,108 +1702,606 @@ gacaatgaatag"""
                     <html>
                     <head>
                         <meta charset="utf-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
                         <title>Mutate for Digest Analysis Results</title>
+                        <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
                         <style>
-                            body {{
-                                font-family: 'Segoe UI', Arial, sans-serif;
-                                background: #f8f9fa;
-                                color: #222;
+                            * {{
                                 margin: 0;
-                                padding: 0 0 2em 0;
+                                padding: 0;
+                                box-sizing: border-box;
                             }}
+                            
+                            body {{
+                                font-family: 'Space Grotesk', sans-serif;
+                                background: linear-gradient(135deg, #0a0e1a 0%, #1a1f3a 100%);
+                                color: #e8f4f8;
+                                line-height: 1.6;
+                                padding: 0;
+                                margin: 0;
+                            }}
+                            
+                            .page-wrapper {{
+                                min-height: 100vh;
+                                background: linear-gradient(135deg, #0a0e1a 0%, #111827 50%, #0f1a2e 100%);
+                            }}
+                            
                             .header {{
-                                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                                color: #fff;
-                                padding: 2em 1em 1em 1em;
-                                border-radius: 0 0 16px 16px;
+                                background: linear-gradient(135deg, #0d1b2a 0%, #112240 50%, #0d1b2a 100%);
+                                color: #e8f4f8;
+                                padding: 3em 2em;
+                                border-radius: 0 0 20px 20px;
                                 text-align: center;
+                                border-bottom: 2px solid rgba(0, 229, 195, 0.3);
+                                box-shadow: 0 8px 32px rgba(0, 229, 195, 0.1), 0 0 60px rgba(162, 89, 255, 0.05);
+                                position: relative;
+                                overflow: hidden;
                             }}
+                            
+                            .header::before {{
+                                content: '';
+                                position: absolute;
+                                top: 0; left: 0; right: 0; bottom: 0;
+                                background: radial-gradient(ellipse 80% 60% at 50% 20%, rgba(0,229,195,0.08) 0%, transparent 60%);
+                                pointer-events: none;
+                            }}
+                            
+                            .header h1 {{
+                                font-family: 'Orbitron', monospace;
+                                font-size: 2.8em;
+                                font-weight: 900;
+                                background: linear-gradient(90deg, #00e5c3, #4cc9f0, #a259ff);
+                                -webkit-background-clip: text;
+                                -webkit-text-fill-color: transparent;
+                                background-clip: text;
+                                margin-bottom: 0.5em;
+                                letter-spacing: 2px;
+                                position: relative;
+                                z-index: 1;
+                            }}
+                            
+                            .header .subtitle {{
+                                font-size: 1.2em;
+                                color: #00e5c3;
+                                letter-spacing: 3px;
+                                text-transform: uppercase;
+                                margin-bottom: 1em;
+                                position: relative;
+                                z-index: 1;
+                            }}
+                            
+                            .header .timestamp {{
+                                color: #8fa3b1;
+                                font-size: 0.95em;
+                                position: relative;
+                                z-index: 1;
+                            }}
+                            
+                            .container {{
+                                max-width: 1200px;
+                                margin: 0 auto;
+                                padding: 0 1em;
+                            }}
+                            
                             .section {{
-                                background: #fff;
-                                border-radius: 10px;
-                                margin: 2em auto 1.5em auto;
-                                max-width: 900px;
-                                box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-                                padding: 2em 2em 1.5em 2em;
+                                background: linear-gradient(135deg, #111827 0%, #1a2235 100%);
+                                border: 1px solid rgba(0, 229, 195, 0.18);
+                                border-radius: 16px;
+                                margin: 2.5em auto;
+                                padding: 2.5em;
+                                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 20px rgba(0, 229, 195, 0.08);
+                                position: relative;
+                                overflow: hidden;
+                                transition: all 0.3s ease;
                             }}
-                            .stat-box {{
-                                display: inline-block;
-                                background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-                                padding: 1em 2em;
-                                border-radius: 10px;
-                                margin: 0 1em 1em 0;
-                                text-align: center;
-                                min-width: 120px;
-                                font-size: 1.1em;
+                            
+                            .section::before {{
+                                content: '';
+                                position: absolute;
+                                top: 0; left: 0;
+                                width: 4px;
+                                height: 100%;
+                                background: linear-gradient(180deg, #00e5c3, #a259ff);
+                                border-radius: 16px 0 0 16px;
+                            }}
+                            
+                            .section h2 {{
+                                font-family: 'Space Grotesk', sans-serif;
+                                font-size: 1.8em;
+                                font-weight: 700;
+                                color: #e8f4f8;
+                                margin-bottom: 1.5em;
+                                display: flex;
+                                align-items: center;
+                                gap: 0.8em;
+                                letter-spacing: 0.5px;
+                                position: relative;
+                                z-index: 1;
+                            }}
+                            
+                            .section h2::after {{
+                                content: '';
+                                flex-grow: 1;
+                                height: 2px;
+                                background: linear-gradient(90deg, rgba(0, 229, 195, 0.4), transparent);
+                                border-radius: 1px;
+                            }}
+                            
+                            .section h3 {{
+                                font-family: 'Space Grotesk', sans-serif;
+                                font-size: 1.3em;
                                 font-weight: 600;
-                                color: #222;
+                                color: #4cc9f0;
+                                margin: 1.5em 0 1em 0;
+                                letter-spacing: 0.5px;
                             }}
-                            .dna-sequence, .aa-sequence {{
-                                font-family: 'Courier New', monospace;
-                                font-size: 1.1em;
-                                background: #f8f9fa;
-                                border-radius: 5px;
-                                border: 1px solid #dee2e6;
-                                padding: 1em;
-                                margin: 1em 0;
-                                overflow-x: auto;
-                                white-space: pre-line;
+                            
+                            .stats-container {{
+                                display: grid;
+                                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                                gap: 1.5em;
+                                margin-bottom: 2em;
                             }}
-                            .restriction-site {{
-                                background: #fff3cd;
-                                color: #856404;
+                            
+                            .stat-box {{
+                                background: linear-gradient(135deg, rgba(0, 229, 195, 0.1), rgba(76, 201, 240, 0.08));
+                                border: 1px solid rgba(0, 229, 195, 0.25);
+                                border-radius: 12px;
+                                padding: 1.8em;
+                                text-align: center;
+                                position: relative;
+                                overflow: hidden;
+                                transition: all 0.3s ease;
+                            }}
+                            
+                            .stat-box::before {{
+                                content: '';
+                                position: absolute;
+                                top: 0; left: 0; right: 0; bottom: 0;
+                                background: radial-gradient(circle at 50% 50%, rgba(0, 229, 195, 0.15), transparent 70%);
+                                opacity: 0;
+                                transition: opacity 0.3s ease;
+                            }}
+                            
+                            .stat-box:hover {{
+                                transform: translateY(-4px);
+                                box-shadow: 0 12px 24px rgba(0, 229, 195, 0.15);
+                                border-color: rgba(0, 229, 195, 0.4);
+                            }}
+                            
+                            .stat-box:hover::before {{
+                                opacity: 1;
+                            }}
+                            
+                            .stat-value {{
+                                font-family: 'Orbitron', monospace;
+                                font-size: 2.5em;
+                                font-weight: 900;
+                                color: #00e5c3;
+                                line-height: 1;
+                                margin-bottom: 0.5em;
+                                position: relative;
+                                z-index: 1;
+                                letter-spacing: 1px;
+                            }}
+                            
+                            .stat-label {{
+                                font-size: 0.85em;
+                                color: #8fa3b1;
+                                text-transform: uppercase;
+                                letter-spacing: 1.5px;
+                                font-weight: 600;
+                                position: relative;
+                                z-index: 1;
+                            }}
+                            
+                            .summary-box {{
+                                background: linear-gradient(135deg, rgba(0, 229, 195, 0.08), rgba(76, 201, 240, 0.05));
+                                border: 1px solid rgba(0, 229, 195, 0.22);
+                                border-radius: 12px;
+                                padding: 2em;
+                                margin-bottom: 2em;
+                                position: relative;
+                                overflow: hidden;
+                            }}
+                            
+                            .summary-box::before {{
+                                content: '';
+                                position: absolute;
+                                top: 0; left: 0;
+                                width: 4px;
+                                height: 100%;
+                                background: linear-gradient(180deg, #00e5c3, #4cc9f0);
+                            }}
+                            
+                            .summary-box ul {{
+                                list-style: none;
+                                padding: 0;
+                                margin: 0;
+                            }}
+                            
+                            .summary-box li {{
+                                padding: 0.8em 0 0.8em 1.5em;
+                                color: #e8f4f8;
+                                font-size: 1.05em;
+                                line-height: 1.7;
+                                position: relative;
+                                border-bottom: 1px solid rgba(0, 229, 195, 0.1);
+                            }}
+                            
+                            .summary-box li:last-child {{
+                                border-bottom: none;
+                            }}
+                            
+                            .summary-box li::before {{
+                                content: '●';
+                                position: absolute;
+                                left: 0;
+                                color: #00e5c3;
                                 font-weight: bold;
-                                border-radius: 3px;
-                                padding: 0.1em 0.3em;
                             }}
-                            .mutation-highlight {{
-                                background: #f8d7da;
-                                color: #721c24;
-                                font-weight: bold;
-                                border-radius: 3px;
-                                padding: 0.1em 0.3em;
+                            
+                            .summary-box b {{
+                                color: #00e5c3;
+                                font-weight: 700;
                             }}
-                            .enzyme-block {{
-                                background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                            
+                            .info-table {{
+                                width: 100%;
+                                border-collapse: collapse;
+                                margin: 1.5em 0;
+                                background: rgba(10, 14, 26, 0.5);
                                 border-radius: 10px;
-                                margin-bottom: 1.2em;
-                                padding: 1.2em;
-                                box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+                                overflow: hidden;
+                            }}
+                            
+                            .info-table th {{
+                                background: linear-gradient(90deg, rgba(0, 229, 195, 0.15), rgba(76, 201, 240, 0.1));
+                                color: #00e5c3;
+                                padding: 1em;
+                                text-align: left;
+                                font-weight: 700;
+                                text-transform: uppercase;
+                                letter-spacing: 1px;
+                                font-size: 0.9em;
+                                border-bottom: 2px solid rgba(0, 229, 195, 0.2);
+                            }}
+                            
+                            .info-table td {{
+                                padding: 1em;
+                                border-bottom: 1px solid rgba(0, 229, 195, 0.1);
+                                color: #e8f4f8;
+                                font-family: 'JetBrains Mono', monospace;
+                            }}
+                            
+                            .info-table tr:hover {{
+                                background: rgba(0, 229, 195, 0.05);
+                            }}
+                            
+                            .dna-sequence {{
+                                font-family: 'JetBrains Mono', monospace;
+                                font-size: 0.95em;
+                                background: rgba(10, 14, 26, 0.8);
+                                border: 1px solid rgba(0, 229, 195, 0.2);
+                                border-radius: 10px;
+                                padding: 1.5em;
+                                margin: 1.5em 0;
+                                overflow-x: auto;
+                                white-space: pre-wrap;
+                                word-break: break-all;
+                                line-height: 1.8;
+                                color: #000000;
+                                box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.4);
+                            }}
+                            
+                            .aa-sequence {{
+                                font-family: 'JetBrains Mono', monospace;
+                                font-size: 1.1em;
+                                background: rgba(10, 14, 26, 0.8);
+                                border: 1px solid rgba(76, 201, 240, 0.2);
+                                border-radius: 10px;
+                                padding: 1.5em;
+                                margin: 1.5em 0;
+                                overflow-x: auto;
+                                white-space: pre-wrap;
+                                word-break: break-all;
+                                line-height: 2;
+                                color: #e8f4f8;
+                                box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.4);
+                                letter-spacing: 0.5em;
+                            }}
+                            
+                            .restriction-site {{
+                                background: rgba(255, 186, 8, 0.2);
+                                color: #ffba08;
+                                font-weight: 700;
+                                border-radius: 4px;
+                                padding: 0.2em 0.5em;
+                                border: 1px solid rgba(255, 186, 8, 0.4);
+                                box-shadow: 0 0 8px rgba(255, 186, 8, 0.15);
+                            }}
+                            
+                            .mutation-highlight {{
+                                background: rgba(247, 37, 133, 0.2);
+                                color: #f72585;
+                                font-weight: 700;
+                                border-radius: 4px;
+                                padding: 0.2em 0.5em;
+                                border: 1px solid rgba(247, 37, 133, 0.4);
+                                box-shadow: 0 0 8px rgba(247, 37, 133, 0.15);
+                            }}
+                            
+                            .enzyme-block {{
+                                background: linear-gradient(135deg, rgba(247, 37, 133, 0.12), rgba(255, 107, 107, 0.08));
+                                border: 1px solid rgba(255, 186, 8, 0.28);
+                                border-radius: 12px;
+                                padding: 1.5em;
+                                margin: 1.5em 0;
+                                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+                                position: relative;
+                                overflow: hidden;
+                                transition: all 0.3s ease;
+                            }}
+                            
+                            .enzyme-block::before {{
+                                content: '';
+                                position: absolute;
+                                top: 0; left: 0;
+                                width: 4px;
+                                height: 100%;
+                                background: linear-gradient(180deg, #ffba08, #ff6b6b);
+                            }}
+                            
+                            .enzyme-block:hover {{
+                                box-shadow: 0 8px 24px rgba(255, 186, 8, 0.15);
+                                border-color: rgba(255, 186, 8, 0.4);
+                                transform: translateX(2px);
+                            }}
+                            
+                            .enzyme-header {{
+                                display: flex;
+                                align-items: center;
+                                gap: 1em;
+                                margin-bottom: 1em;
+                            }}
+                            
+                            .enzyme-icon {{
+                                display: inline-flex;
+                                align-items: center;
+                                justify-content: center;
+                                width: 50px;
+                                height: 50px;
+                                background: linear-gradient(135deg, rgba(255, 186, 8, 0.3), rgba(255, 107, 107, 0.2));
+                                border: 2px solid rgba(255, 186, 8, 0.4);
+                                border-radius: 50%;
+                                font-weight: 700;
+                                color: #ffba08;
+                                font-size: 1.3em;
+                                font-family: 'Orbitron', monospace;
+                                box-shadow: 0 0 16px rgba(255, 186, 8, 0.15);
+                            }}
+                            
+                            .enzyme-name {{
+                                font-size: 1.2em;
+                                font-weight: 700;
+                                color: #ffba08;
+                                font-family: 'Space Grotesk', sans-serif;
+                            }}
+                            
+                            .enzyme-details {{
+                                margin-left: 3.5em;
+                            }}
+                            
+                            .enzyme-details p {{
+                                margin: 0.5em 0;
+                                color: #e8f4f8;
+                                font-size: 1em;
+                            }}
+                            
+                            .mutation-sequence {{
+                                display: inline-block;
+                                font-family: 'JetBrains Mono', monospace;
+                                border-radius: 6px;
+                                padding: 0.4em 0.8em;
+                                margin: 0 0.5em;
+                                font-weight: 700;
+                                font-size: 1.1em;
+                                letter-spacing: 0.5px;
+                            }}
+                            
+                            .mutation-sequence.original {{
+                                background: #a3d5ff;
+                                border: 2px solid #0066cc;
+                                color: #000000;
+                            }}
+                            
+                            .mutation-sequence.mutated {{
+                                background: #ffd580;
+                                border: 2px solid #ff8c00;
+                                color: #000000;
+                            }}
+                            
+                            .mutation-arrow {{
+                                font-size: 1.5em;
+                                margin: 0 0.5em;
+                                vertical-align: middle;
+                                color: #4cc9f0;
+                            }}
+                            
+                            .amino-change {{
+                                background: rgba(247, 37, 133, 0.15);
+                                color: #f72585;
+                                border-radius: 6px;
+                                padding: 0.3em 0.8em;
+                                font-weight: 700;
+                                border: 1px solid rgba(247, 37, 133, 0.35);
+                                font-family: 'JetBrains Mono', monospace;
+                                display: inline-block;
+                                margin: 0 0.5em;
+                            }}
+                        
+                            .mutation-badge {{
+                                display: inline-block;
+                                padding: 0.3em 0.8em;
+                                border-radius: 20px;
+                                font-size: 0.9em;
+                                font-weight: 600;
+                                margin-left: 1em;
+                            }}
+                            
+                            .mutation-badge.silent {{
+                                background: rgba(0, 229, 195, 0.15);
+                                border: 1px solid rgba(0, 229, 195, 0.3);
+                                color: #00e5c3;
+                            }}
+                            
+                            .mutation-badge.nonsilent {{
+                                background: rgba(255, 107, 107, 0.15);
+                                border: 1px solid rgba(255, 107, 107, 0.3);
+                                color: #ff6b6b;
+                            }}
+                            
+                            .list-item {{
+                                padding: 1em;
+                                background: rgba(0, 229, 195, 0.06);
+                                border-left: 4px solid rgba(0, 229, 195, 0.3);
+                                border-radius: 4px;
+                                margin: 0.8em 0;
+                                color: #e8f4f8;
+                            }}
+                            
+                            .footer {{
+                                text-align: center;
+                                padding: 2em;
+                                color: #8fa3b1;
+                                font-size: 0.9em;
+                                border-top: 1px solid rgba(0, 229, 195, 0.1);
+                                margin-top: 3em;
+                            }}
+                            
+                            .footer strong {{
+                                color: #00e5c3;
+                            }}
+                            
+                            @media print {{
+                                body {{ background: white; color: #000; }}
+                                .section {{ background: white; color: #000; border-color: #ddd; }}
+                                .stat-box {{ background: #f5f5f5; }}
+                            }}
+                            
+                            @keyframes fadeIn {{
+                                from {{ opacity: 0; transform: translateY(10px); }}
+                                to {{ opacity: 1; transform: translateY(0); }}
+                            }}
+                            
+                            .section {{
+                                animation: fadeIn 0.6s ease-out;
                             }}
                         </style>
                     </head>
                     <body>
-                        <div class="header">
-                            <h1>🧬 Mutate for Digest Analysis Results</h1>
-                            <div>Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</div>
+                        <div class="page-wrapper">
+                            <div class="header">
+                                <div class="subtitle">🧬 Restriction Site Analysis</div>
+                                <h1>Mutate for Digest</h1>
+                                <div class="timestamp">Report generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</div>
+                            </div>
+                            
+                            <div class="container">
+                                <!-- Summary Section -->
+                                <div class="section">
+                                    <h2>📋 Executive Summary</h2>
+                                    <div class="summary-box">
+                                        {html_summary}
+                                    </div>
+                                </div>
+                                
+                                <!-- Sequence Statistics -->
+                                <div class="section">
+                                    <h2>📊 Sequence Statistics</h2>
+                                    <div class="stats-container">
+                                        <div class="stat-box">
+                                            <div class="stat-value">{len(new_dna)}</div>
+                                            <div class="stat-label">Base Pairs</div>
+                                        </div>
+                                        <div class="stat-box">
+                                            <div class="stat-value">{gc_content:.1f}%</div>
+                                            <div class="stat-label">GC Content</div>
+                                        </div>
+                                        <div class="stat-box">
+                                            <div class="stat-value">{topology.title()}</div>
+                                            <div class="stat-label">DNA Topology</div>
+                                        </div>
+                                        <div class="stat-box">
+                                            <div class="stat-value">{len(restriction_sites_list)}</div>
+                                            <div class="stat-label">Enzymes Analyzed</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <h3>Analysis Parameters</h3>
+                                    <table class="info-table">
+                                        <tr>
+                                            <th>Parameter</th>
+                                            <th>Value</th>
+                                        </tr>
+                                        <tr>
+                                            <td>Sequence Name</td>
+                                            <td><strong>{title}</strong></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Sequence Length</td>
+                                            <td><strong>{len(new_dna)} bp</strong></td>
+                                        </tr>
+                                        <tr>
+                                            <td>GC Content</td>
+                                            <td><strong>{gc_content:.1f}%</strong></td>
+                                        </tr>
+                                        <tr>
+                                            <td>DNA Topology</td>
+                                            <td><strong>{topology.title()}</strong></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Reading Frames</td>
+                                            <td><strong>{', '.join(reading_frame)}</strong></td>
+                                        </tr>
+                                        <tr>
+                                            <td>Restriction Enzymes</td>
+                                            <td><strong>{', '.join([site.split('(')[1].split(')')[0] for site in restriction_sites_list])}</strong></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                
+                                <!-- Found Restriction Sites -->
+                                <div class="section">
+                                    <h2>🎯 Found Restriction Sites</h2>
+                                    {"" if normal_collection.restriction_sites else "<p style='color: #8fa3b1; font-style: italic;'>No restriction sites found with current parameters.</p>"}
+                                    {f"<table class='info-table'>{''.join([f'<tr><td><span class=restriction-site>{site.label}</span></td><td>{site.iupac_pattern}</td><td>{site.cut_distance}</td></tr>' for site in normal_collection.restriction_sites])}</table>" if normal_collection.restriction_sites else ""}
+                                </div>
+                                
+                                <!-- Potential Mutation Sites -->
+                                <div class="section">
+                                    <h2>🧪 Potential Mutation Sites</h2>
+                                    {"" if mutant_collection.restriction_sites else "<p style='color: #8fa3b1; font-style: italic;'>No potential mutation sites found.</p>"}
+                                    {f"<table class='info-table'>{''.join([f'<tr><td><span class=mutation-highlight>{site.label}</span></td><td>{site.iupac_pattern}</td><td>{site.cut_distance}</td></tr>' for site in mutant_collection.restriction_sites])}</table>" if mutant_collection.restriction_sites else ""}
+                                </div>
+                                
+                                <!-- DNA Sequence Visualization -->
+                                <div class="section">
+                                    <h2>🧬 DNA Sequence Visualization</h2>
+                                    <p style="color: #8fa3b1; margin-bottom: 1em;">Highlighted positions indicate restriction enzyme cut sites.</p>
+                                    <div class="dna-sequence">{formatted_sequence}</div>
+                                </div>
+                                
+                                <!-- Protein Translation Results -->
+                                {html_rf_sections}
+                                
+                                <!-- Footer -->
+                                <div class="footer">
+                                    <strong>Mutate for Digest</strong> | Advanced Bioinformatics Analysis Tool<br>
+                                    This report is generated for research purposes. Always verify results experimentally.
+                                </div>
+                            </div>
                         </div>
-                        <div class="section">
-                            <h2>ℹ️ Report Summary</h2>
-                            {html_summary}
-                        </div>
-                        <div class="section">
-                            <h2>📄 Sequence Summary</h2>
-                            <div class="stat-box">Length<br>{len(new_dna)} bp</div>
-                            <div class="stat-box">GC Content<br>{gc_content:.1f}%</div>
-                            <div class="stat-box">Topology<br>{topology.title()}</div>
-                            <div class="stat-box">Restriction Sites<br>{len(restriction_sites_list)}</div>
-                            <div style="margin-top:1em;"><b>Sequence:</b> {title}</div>
-                            <div><b>Restriction Sites Analyzed:</b> {', '.join([site.split('(')[1].split(')')[0] for site in restriction_sites_list])}</div>
-                            <div><b>Reading Frame(s):</b> {', '.join(reading_frame)}</div>
-                        </div>
-                        <div class="section">
-                            <h2>🎯 Found Restriction Sites</h2>
-                            {"<ul>" + "".join([f"<li><span class='restriction-site'>{site.label}</span> - Pattern: <b>{site.iupac_pattern}</b> - Cut Distance: {site.cut_distance}</li>" for site in normal_collection.restriction_sites]) + "</ul>" if normal_collection.restriction_sites else "<i>No restriction sites found with current parameters.</i>"}
-                        </div>
-                        <div class="section">
-                            <h2>🧪 Potential Mutation Sites</h2>
-                            {"<ul>" + "".join([f"<li><span class='mutation-highlight'>{site.label}</span> - Pattern: <b>{site.iupac_pattern}</b> - Cut Distance: {site.cut_distance}</li>" for site in mutant_collection.restriction_sites]) + "</ul>" if mutant_collection.restriction_sites else "<i>No potential mutation sites found.</i>"}
-                        </div>
-                        <div class="section">
-                            <h2>🧬 Sequence Visualization</h2>
-                            <div class="dna-sequence">{formatted_sequence}</div>
-                        </div>
-                        {html_rf_sections}
                     </body>
                     </html>
                     """
@@ -1178,5 +2355,4 @@ Restriction Sites Analyzed: {', '.join([site.split('(')[1].split(')')[0] for sit
                     )
 
 if __name__ == "__main__":
-
     main()
