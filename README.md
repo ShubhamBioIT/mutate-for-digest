@@ -130,16 +130,6 @@ streamlit run streamlit_app.py
 
 Then open your browser and navigate to **`http://localhost:8501`** 🌐
 
-### 🐳 Docker Installation (Optional)
-```bash
-# Build the Docker image
-docker build -t mutate-for-digest .
-
-# Run the container
-docker run -p 8501:8501 mutate-for-digest
-```
-
----
 
 ## 📋 Requirements
 ```
